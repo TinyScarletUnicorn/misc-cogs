@@ -29,8 +29,8 @@ class TsubakiGPT(commands.Cog):
         return
 
     def get_temperature(self) -> float:
-        secs = time.time() - 1680310800
-        total_seconds = 108000
+        total_seconds = 86400
+        secs = time.time() % total_seconds
         return 1.0 - secs*2/total_seconds
 
     def get_sentence(self, temperature: float, add_words: Dict[str, float], n: int) -> str:
