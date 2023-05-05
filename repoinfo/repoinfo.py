@@ -103,10 +103,10 @@ class RepoInfo(commands.Cog):
                 doc_max_width = 80 - max_width
                 for nm, com in cmds:
                     width_gap = discord.utils._string_width(nm) - len(nm)
-                    doc = com.format_shortdoc_for_context(ctx)
-                    if len(doc) > doc_max_width:
-                        doc = doc[: doc_max_width - 3] + "..."
-                    yield nm, doc, max_width - width_gap
+                    shortdoc = com.format_shortdoc_for_context(ctx)
+                    if len(shortdoc) > doc_max_width:
+                        shortdoc = shortdoc[: doc_max_width - 3] + "..."
+                    yield nm, shortdoc, max_width - width_gap
 
             for cog_name, data in coms:
 
@@ -175,10 +175,10 @@ class RepoInfo(commands.Cog):
                 doc_max_width = 80 - max_width
                 for nm, com in cmds:
                     width_gap = discord.utils._string_width(nm) - len(nm)
-                    doc = com.format_shortdoc_for_context(ctx)
-                    if len(doc) > doc_max_width:
-                        doc = doc[: doc_max_width - 3] + "..."
-                    yield nm, doc, max_width - width_gap
+                    shortdoc = com.format_shortdoc_for_context(ctx)
+                    if len(shortdoc) > doc_max_width:
+                        shortdoc = shortdoc[: doc_max_width - 3] + "..."
+                    yield nm, shortdoc, max_width - width_gap
 
             to_join.append(cog_name + ":")
 

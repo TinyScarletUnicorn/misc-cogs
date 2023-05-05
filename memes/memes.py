@@ -1,4 +1,3 @@
-import discord
 import re
 from io import BytesIO
 
@@ -119,7 +118,7 @@ class Memes(commands.Cog):
         guild = message.guild
         prefix = await self.get_prefix(message)
 
-        if not prefix:
+        if prefix is None:
             return
 
         # MEME CODE
@@ -145,7 +144,7 @@ class Memes(commands.Cog):
         for p in await self.bot.get_prefix(message):
             if message.content.startswith(p):
                 return p
-        return False
+        return None
 
     def format_cc(self, command, message):
         results = re.findall(r"{([^}]+)}", command)

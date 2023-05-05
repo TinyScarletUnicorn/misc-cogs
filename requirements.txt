@@ -5,10 +5,6 @@ Red-DiscordBot
 backoff
 prettytable
 git+https://github.com/tejstead/python-romkan
-google-api
-google-api-python-client
-google-cloud
-google-cloud-texttospeech
 pymysql
 python-dateutil
 ply

@@ -4,8 +4,7 @@ import random
 from io import BytesIO
 
 import discord
-from redbot.core import checks, Config
-from redbot.core import commands
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils.chat_formatting import box, inline, pagify
 
@@ -105,8 +104,11 @@ class StreamCopy(commands.Cog):
             user = self.bot.get_user(uid)
             if user is None:
                 output.append("Deleted User ({})".format(uid))
+            elif not user.mutual_guilds:
+                output.append("{} (Not in server with bot)".format(user.name))
             else:
-                output.append("({}) : {}".format('+' if self.is_playing(user) else '-', user.name))
+                member = user.mutual_guilds[0].get_member(user.id)
+                output.append("({}) : {}".format('+' if self.is_playing(member) else '-', user.name))
 
         for page in pagify('\n'.join(output)):
             await ctx.send(box(page))

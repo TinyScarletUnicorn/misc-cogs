@@ -6,7 +6,7 @@ from typing import Any
 import discord
 from redbot.core import Config, checks, commands, modlog
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import inline, pagify, box
+from redbot.core.utils.chat_formatting import box, inline, pagify
 from tsutils.cogs.globaladmin import auth_check
 from tsutils.user_interaction import get_user_confirmation
 
@@ -145,11 +145,12 @@ class GlobalBan(commands.Cog):
                             pass
                     else:
                         await guild.ban(m, reason="GlobalBan", delete_message_days=0)
+                        discord.Member
                     await modlog.create_case(bot=self.bot,
                                              guild=guild,
                                              created_at=datetime.datetime.now(datetime.timezone.utc),
                                              action_type="globalban",
-                                             user=m,
+                                             user=discord.Object(id=uid),
                                              reason='GlobalBan')
                 except discord.Forbidden:
                     logger.warning("Failed to ban user with ID {} in guild {}".format(uid, guild.name))

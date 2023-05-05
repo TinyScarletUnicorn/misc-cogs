@@ -3,7 +3,7 @@ from io import BytesIO
 
 import discord
 import emoji as emoji_module
-from redbot.core import checks, commands, Config
+from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import box, pagify
 
 logger = logging.getLogger('red.misc-cogs.grantrole')
@@ -80,7 +80,7 @@ class GrantRole(commands.Cog):
         try:
             emoji = await commands.EmojiConverter().convert(ctx, emoji)
         except commands.BadArgument:
-            if emoji not in emoji_module.UNICODE_EMOJI['en']:
+            if not emoji_module.is_emoji(emoji):
                 await ctx.send("I do not have access to emoji `{}`".format(emoji))
                 return
 
@@ -99,7 +99,7 @@ class GrantRole(commands.Cog):
         try:
             emoji = await commands.EmojiConverter().convert(ctx, emoji)
         except commands.BadArgument:
-            if emoji not in emoji_module.UNICODE_EMOJI['en']:
+            if not emoji_module.is_emoji(emoji):
                 await ctx.send("I do not have access to emoji `{}`".format(emoji))
                 return
 

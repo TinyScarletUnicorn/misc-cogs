@@ -199,7 +199,7 @@ class ChannelMirror(commands.Cog):
                     logger.warning('could not locate messages {}'.format(mids))
                     continue
                 for dest_message in dest_messages:
-                    dest_reaction = discord.utils.find(lambda r: r == react, dest_message.reactions)
+                    dest_reaction = next((r for r in dest_message.reactions if r == react), None)
                     if not dest_reaction:
                         logger.warning('could not locate reaction {}'.format(react))
                         continue
@@ -384,7 +384,7 @@ class ChannelMirror(commands.Cog):
         await self.mirror_msg_mod(message, delete_message_reaction=payload.emoji)
 
     async def split_message(self, message: discord.Message, fit_in: Optional[int] = None) -> List[str]:
-        attribute = await self.config.custom('message', message.id).attribute()
+        attribute = await self.config.custom('message', str(message.id)).attribute()
         content = (self.makeheader(message) if attribute else '') + message.content
         if fit_in is None:
             return list(pagify(content, delims=['\n\n', '\n'], shorten_by=0, page_length=1750))
@@ -469,7 +469,7 @@ class ChannelMirror(commands.Cog):
             if target is None:
                 logger.warning('could not locate role to mod')
                 continue
-            dest = discord.utils.get(dest_channel.guild.roles, name=target.name)
+            dest = next((r for r in dest_channel.guild.roles if r.name == target.name), None)
             if dest is None:
                 repl = "\\@" + target.name
             else:
