@@ -1,5 +1,4 @@
 from io import BytesIO
-from io import BytesIO
 
 from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import box, inline, pagify
@@ -8,12 +7,13 @@ from tsutils.user_interaction import get_user_confirmation
 
 class Todo(commands.Cog):
     """A virtual todo list in cog form"""
+
     def __init__(self, bot, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bot = bot
 
         self.config = Config.get_conf(self, identifier=7000)
-        self.config.register_user(todos={'todo':[]}, focus='todo')
+        self.config.register_user(todos={'todo': []}, focus='todo')
 
     async def red_get_data_for_user(self, *, user_id):
         """Get a user's personal data."""
@@ -124,7 +124,7 @@ class Todo(commands.Cog):
             todos[name] = []
         await ctx.tick()
 
-    @lists.command(name="remove", aliases=['rm','delete'])
+    @lists.command(name="remove", aliases=['rm', 'delete'])
     async def lists_remove(self, ctx, name):
         """Remove a todo list"""
         name = name.lower()

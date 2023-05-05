@@ -71,21 +71,3 @@ Once the bot is launched, set it to use your repo directory as a cog path. Type 
 * You probably don't actually need emoji to be working in order to do development for Tsubaki.
 * There are three emoji servers: the main Tsubaki support server, `miru_extra_emoji`, and `miru_monsters_1`. River has access to these, talk to her if you think you need access to them. HOSTING YOUR OWN TSUBAKI/MIRU CLONE IS NOT REASON TO GET ACCESS TO THEM. In-depth development of the `^id` command may be reason to get access to them.
 * You will use use `^padinfo setemojiservers` with the IDs she gives you.
-
-
-# Admin/util cogs
-
-Cogs that make server administration easier, do miscellaneous useful things, or
-contain utility libraries.
-
-| Cog            | Purpose                                                     |
-| ---            | ---                                                         |
-| baduser        | Tracks misbehaving users, other misc user tracking          |   
-| calculator     | Replacement for the calculator cog that doesnt suck         |
-| channelmirror | A better version of the built-in discord announcement channel   |
-| donations      | Tracks users who have donated for hosting fees              |
-| fancysay       | Make the bot say special things                             |
-| memes          | CustomCommands except role-limited                          |    
-| sqlactivitylog | Archives messages in sqlite, allows for lookup              |    
-| timecog        | Convert/show time in different timezones and set reminders  |
-| trutils        | Misc utilities intended for my usage only                   |

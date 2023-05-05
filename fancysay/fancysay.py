@@ -55,7 +55,7 @@ class FancySay(commands.Cog):
             await role.edit(mentionable=True)
         except Exception as ex:
             await ctx.send(inline('Error: failed to set role mentionable'))
-            if ex.text == "Missing Permissions":
+            if isinstance(ex, discord.Forbidden):
                 message = await ctx.send(inline('Make sure this bot\'s role is higher than the one you\'re mentioning'))
                 await asyncio.sleep(3)
                 await message.delete()
@@ -104,10 +104,11 @@ class FancySay(commands.Cog):
         *text, message_t = text.split()
         try:
             message = await commands.MessageConverter().convert(ctx, message_t)
-            text = "".join(text)
-        except:
+        except commands.MessageNotFound:
             message = None
             text = "".join(text + [message_t])
+        else:
+            text = "".join(text)
 
         if message is None:
             message = (await ctx.channel.history(limit=2).flatten())[1]
@@ -125,13 +126,11 @@ class FancySay(commands.Cog):
 
         await ctx.message.delete()
 
-
         used = ""
         for char in text:
             emote = ([char_to_emoji(char)] + EXTRA.get(char, []))[used.count(char)]
             await message.add_reaction(emote)
             used += char
-
 
     @fancysay.command(aliases=['tdif'])
     @checks.bot_has_permissions(embed_links=True)
@@ -167,7 +166,7 @@ class FancySay(commands.Cog):
         try:
             await ctx.send(embed=embed)
         except Exception as error:
-            await ctx.send(box(error.text))
+            await ctx.send(box(str(error)))
 
     @commands.command(aliases=["parrot", "repeat"])
     @checks.mod_or_permissions(manage_messages=True)

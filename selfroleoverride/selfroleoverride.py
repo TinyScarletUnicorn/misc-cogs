@@ -60,7 +60,6 @@ class SelfRoleOverride(commands.Cog):
         else:
             await ctx.send(f"The role {selfrole.name} is not user settable. See `{ctx.prefix}selfrole list` for valid selfroles.")
         
-
     @selfrole.command(name="remove")
     async def selfrole_remove(self, ctx: commands.Context, *, selfrole: CaseInsensitiveRole):
         """

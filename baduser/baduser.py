@@ -2,24 +2,20 @@
 Utilities for managing misbehaving users and facilitating administrator
 communication about role changes.
 """
+import logging
 import time
+from collections import defaultdict, deque
+from io import BytesIO
 from typing import Optional
 
 import discord
-import logging
-from collections import defaultdict
-from collections import deque
-from redbot.core import checks, Config
-from redbot.core import commands
+from redbot.core import Config, checks, commands
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, inline, pagify
+from tsutils.cog_settings import CogSettings
 
 from baduser.baduser_helper import BadUserHelper
-
-from io import BytesIO
-
-from tsutils.cog_settings import CogSettings
 
 logger = logging.getLogger('red.misc-cogs.baduser')
 
@@ -67,7 +63,7 @@ class BadUser(commands.Cog):
             data += (" - You have been punished/banned in {} servers: "
                      "(This data is sensitive and cannot be cleared automatically due to abuse. "
                      "Please contact a bot owner to get this data cleared.)\n"
-                     "").format(len(udata['baduser']))
+                     "").format(udata['baduser'])
 
         if not any(udata.values()):
             data = "No data is stored for user with ID {}.\n".format(user_id)
@@ -297,7 +293,7 @@ class BadUser(commands.Cog):
     async def report(self, ctx):
         """Displays a report of information on bad users for the server."""
         cur_server = ctx.guild
-        user_id_to_ban_server = defaultdict(list)
+        user_id_to_ban_server: dict[int, list] = defaultdict(list)
         user_id_to_baduser_server = defaultdict(list)
         error_messages = list()
         for server in self.bot.guilds:
@@ -309,7 +305,7 @@ class BadUser(commands.Cog):
                 continue
 
             try:
-                ban_list = await server.bans()
+                ban_list = server.bans()
             except discord.Forbidden:
                 ban_list = AsyncIter([])
                 error_messages.append("Server '{}' refused access to ban list".format(server.name))
@@ -402,13 +398,14 @@ class BadUser(commands.Cog):
         """Get notified when a user comes online so you can punish them accordingly >:)"""
 
     @onlinenotify.command(name="add")
-    async def oln_add(self, ctx, member: discord.Member, timeout: float = 10):
+    async def oln_add(self, ctx, user: discord.User, timeout: float = 10):
         """Add a user to your notificaitons"""
-        async with self.config.user(member).listeners() as listeners:
+        async with self.config.user(user).listeners() as listeners:
             listeners[ctx.author.id] = {
                 "timeout": max(timeout, .1),
                 "last": 0,
             }
+            member = ctx.guild.get_member(user.id)
             if member.status == discord.Status.online:
                 await ctx.send("The user is online right now.")
                 listeners[ctx.author.id]['last'] = time.time()
@@ -428,7 +425,7 @@ class BadUser(commands.Cog):
                 await ctx.send(inline("Invalid user."))
                 return
 
-        async with self.config.user(discord.Object(member)).listeners() as listeners:
+        async with self.config.user_from_id(member).listeners() as listeners:
             if str(ctx.author.id) not in listeners:
                 await ctx.send("This user is not set up to notify you.")
                 return

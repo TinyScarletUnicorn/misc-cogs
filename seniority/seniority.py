@@ -1,17 +1,17 @@
-import aioodbc
-import discord
 import logging
 import os
-import prettytable
-import pytz
 import re
 import sys
 import timeit
-from io import BytesIO
 from collections import deque
 from datetime import datetime, timedelta
-from redbot.core import checks
-from redbot.core import commands
+from io import BytesIO
+
+import aioodbc
+import discord
+import prettytable
+import pytz
+from redbot.core import checks, commands
 from redbot.core.bot import Red
 from redbot.core.commands import Context
 from redbot.core.utils.chat_formatting import box, inline, pagify
@@ -655,7 +655,7 @@ class Seniority(commands.Cog):
         server = message.guild
         server_id = server.id
         if self.settings.ignore_commands(server_id):
-            if (await self.bot.get_context(message)).prefix:
+            if (await self.bot.get_context(message)).prefix:  # noqa ????
                 return False, text, 'Ignored command'
 
         if self.settings.ignore_room_codes(server_id):
@@ -840,11 +840,11 @@ class SenioritySettings(CogSettings):
     def servers(self):
         return self.bot_settings['servers']
 
-    def server(self, server_id: str):
+    def server(self, server_id: int):
         servers = self.servers()
         return ensure_map(servers, server_id, {})
 
-    def config(self, server_id: str):
+    def config(self, server_id: int):
         server = self.server(server_id)
         config = ensure_map(server, 'config', {})
         ensure_map(config, 'announce_channel', '')
@@ -855,45 +855,45 @@ class SenioritySettings(CogSettings):
         ensure_map(config, 'remove_lookback', 90)
         return config
 
-    def announce_channel(self, server_id: str):
+    def announce_channel(self, server_id: int):
         return self.config(server_id)['announce_channel']
 
-    def auto_grant(self, server_id: str):
+    def auto_grant(self, server_id: int):
         return self.config(server_id)['auto_grant']
 
-    def message_cap(self, server_id: str):
+    def message_cap(self, server_id: int):
         return self.config(server_id)['message_cap']
 
-    def server_point_cap(self, server_id: str):
+    def server_point_cap(self, server_id: int):
         return self.config(server_id)['server_point_cap']
 
-    def grant_lookback(self, server_id: str):
+    def grant_lookback(self, server_id: int):
         return self.config(server_id)['grant_lookback']
 
-    def remove_lookback(self, server_id: str):
+    def remove_lookback(self, server_id: int):
         return self.config(server_id)['remove_lookback']
 
-    def set_announce_channel(self, server_id: str, channel_id):
+    def set_announce_channel(self, server_id: int, channel_id):
         self.config(server_id)['announce_channel'] = channel_id
         self.save_settings()
 
-    def set_auto_grant(self, server_id: str, auto_grant: bool):
+    def set_auto_grant(self, server_id: int, auto_grant: bool):
         self.config(server_id)['auto_grant'] = auto_grant
         self.save_settings()
 
-    def set_message_cap(self, server_id, message_cap: int):
+    def set_message_cap(self, server_id: int, message_cap: int):
         self.config(server_id)['message_cap'] = message_cap
         self.save_settings()
 
-    def set_server_point_cap(self, server_id, server_point_cap: int):
+    def set_server_point_cap(self, server_id: int, server_point_cap: int):
         self.config(server_id)['server_point_cap'] = server_point_cap
         self.save_settings()
 
-    def set_grant_lookback(self, server_id: str, lookback: int):
+    def set_grant_lookback(self, server_id: int, lookback: int):
         self.config(server_id)['grant_lookback'] = lookback
         self.save_settings()
 
-    def set_remove_lookback(self, server_id: str, lookback: int):
+    def set_remove_lookback(self, server_id: int, lookback: int):
         self.config(server_id)['remove_lookback'] = lookback
         self.save_settings()
 
@@ -901,7 +901,7 @@ class SenioritySettings(CogSettings):
         server = self.server(server_id)
         return ensure_map(server, 'roles', {})
 
-    def set_role(self, server_id: str, role_id: str, remove_amount: int, warn_amount: int, grant_amount: int):
+    def set_role(self, server_id: int, role_id: int, remove_amount: int, warn_amount: int, grant_amount: int):
         roles = self.roles(server_id)
         if remove_amount == 0 and grant_amount == 0:
             roles.pop(role_id, None)
@@ -920,7 +920,7 @@ class SenioritySettings(CogSettings):
             }
         self.save_settings()
 
-    def utterances(self, server_id: str):
+    def utterances(self, server_id: int):
         server = self.server(server_id)
         utterances = ensure_map(server, 'utterances', {})
         ensure_map(utterances, 'ignore_commands', True)
@@ -931,53 +931,53 @@ class SenioritySettings(CogSettings):
         ensure_map(utterances, 'min_words', 5)
         return utterances
 
-    def ignore_commands(self, server_id: str):
+    def ignore_commands(self, server_id: int):
         return self.utterances(server_id)['ignore_commands']
 
-    def ignore_emoji(self, server_id: str):
+    def ignore_emoji(self, server_id: int):
         return self.utterances(server_id)['ignore_emoji']
 
-    def ignore_mentions(self, server_id: str):
+    def ignore_mentions(self, server_id: int):
         return self.utterances(server_id)['ignore_mentions']
 
-    def ignore_room_codes(self, server_id: str):
+    def ignore_room_codes(self, server_id: int):
         return self.utterances(server_id)['ignore_room_codes']
 
-    def min_length(self, server_id: str):
+    def min_length(self, server_id: int):
         return self.utterances(server_id)['min_length']
 
-    def min_words(self, server_id: str):
+    def min_words(self, server_id: int):
         return self.utterances(server_id)['min_words']
 
-    def set_ignore_commands(self, server_id: str, ignore: bool):
+    def set_ignore_commands(self, server_id: int, ignore: bool):
         self.utterances(server_id)['ignore_commands'] = ignore
         self.save_settings()
 
-    def set_ignore_emoji(self, server_id: str, ignore: bool):
+    def set_ignore_emoji(self, server_id: int, ignore: bool):
         self.utterances(server_id)['ignore_emoji'] = ignore
         self.save_settings()
 
-    def set_ignore_mentions(self, server_id: str, ignore: bool):
+    def set_ignore_mentions(self, server_id: int, ignore: bool):
         self.utterances(server_id)['ignore_mentions'] = ignore
         self.save_settings()
 
-    def set_ignore_room_codes(self, server_id: str, ignore: bool):
+    def set_ignore_room_codes(self, server_id: int, ignore: bool):
         self.utterances(server_id)['ignore_room_codes'] = ignore
         self.save_settings()
 
-    def set_min_length(self, server_id: str, min_length: int):
+    def set_min_length(self, server_id: int, min_length: int):
         self.utterances(server_id)['min_length'] = min_length
         self.save_settings()
 
-    def set_min_words(self, server_id: str, min_words: int):
+    def set_min_words(self, server_id: int, min_words: int):
         self.utterances(server_id)['min_words'] = min_words
         self.save_settings()
 
-    def blacklist(self, server_id: str):
+    def blacklist(self, server_id: int):
         server = self.server(server_id)
         return ensure_map(server, 'blacklist', {})
 
-    def add_blacklist(self, server_id: str, user_id: str, by_id: str, reason: str):
+    def add_blacklist(self, server_id: int, user_id: int, by_id: str, reason: str):
         blacklist = self.blacklist(server_id)
         blacklist[user_id] = {
             'user_id': user_id,
@@ -987,17 +987,17 @@ class SenioritySettings(CogSettings):
         }
         self.save_settings()
 
-    def remove_blacklist(self, server_id: str, user_id: str):
+    def remove_blacklist(self, server_id: int, user_id: int):
         blacklist = self.blacklist(server_id)
         result = blacklist.pop(user_id, None)
         self.save_settings()
         return result
 
-    def channels(self, server_id: str):
+    def channels(self, server_id: int):
         server = self.server(server_id)
         return ensure_map(server, 'channels', {})
 
-    def set_channel(self, server_id: str, channel_id: str, max_ppd: int):
+    def set_channel(self, server_id: int, channel_id: int, max_ppd: int):
         channels = self.channels(server_id)
         if max_ppd == 0:
             channels.pop(channel_id, None)

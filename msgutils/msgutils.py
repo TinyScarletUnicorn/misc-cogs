@@ -81,6 +81,7 @@ class MsgUtils(commands.Cog):
                 return
         else:
             msg_limit = 2 if channel == ctx.channel else 1
+            msg = None
             async for message in channel.history(limit=msg_limit):
                 msg = message
         content = msg.content.strip()
