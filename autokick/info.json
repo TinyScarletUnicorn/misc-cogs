@@ -1,0 +1,25 @@
+{
+  "author": [
+    "Aradia Megido#2552"
+  ],
+  "description": "Autokick users with a specific role to deter spam bots",
+  "end_user_data_statement": "No personal data is stored.",
+  "install_msg": "Use [p]autokick to get started.",
+  "short": "Autokick bot users",
+  "min_bot_version": "3.4.0",
+  "max_bot_version": "0.0.0",
+  "min_python_version": [
+    3,
+    8,
+    1
+  ],
+  "hidden": false,
+  "disabled": false,
+  "required_cogs": {},
+  "requirements": [],
+  "tags": [
+    "Tsubaki",
+    "captcha",
+    "moderation"
+  ]
+}
