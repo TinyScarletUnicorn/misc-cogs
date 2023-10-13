@@ -8,7 +8,11 @@ logger = logging.getLogger('red.misc-cogs.autokick')
 
 
 class AutoKick(commands.Cog):
-    """Grant roles on user join or reaction add"""
+    """Autokick members on certain conditions"""
+
+    DM_TEXT = ("Your account has displayed anomolous behavior in our server indicative of"
+               " botting, and we're kicking you. If you are human and believe this to be in"
+               " error, please rejoin & contact mods.")
 
     def __init__(self, bot, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,9 +62,7 @@ class AutoKick(commands.Cog):
             return
         if kick_role in member.roles:
             try:
-                await member.send("Your account has displayed anomolous behavior in our server indicative of"
-                                  " botting, and we're kicking you. If you are human and believe this to be in"
-                                  " error, please rejoin & contact mods.")
+                await member.send(self.DM_TEXT)
             except discord.Forbidden:
                 pass
             try:
@@ -78,9 +80,7 @@ class AutoKick(commands.Cog):
                 continue
             for baduser in kick_role.members:
                 try:
-                    await baduser.send("Your account has displayed anomolous behavior in our server indicative of"
-                                       " botting, and we're kicking you. If you are human and believe this to be in"
-                                       " error, please rejoin & contact mods.")
+                    await baduser.send(self.DM_TEXT)
                 except discord.Forbidden:
                     pass
                 try:
