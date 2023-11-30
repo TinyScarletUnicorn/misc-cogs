@@ -12,6 +12,7 @@ from redbot.core import Config, checks, commands
 from redbot.core.utils.chat_formatting import box, inline, pagify
 from tsutils.cog_settings import CogSettings
 from tsutils.formatting import strip_right_multiline
+from tsutils.user_interaction import send_confirmation_message
 
 try:
     import regex as re
@@ -68,6 +69,9 @@ You can also prevent users from spamming images using {0.prefix}automod imagelim
 Likewise, you can also prevent users from spamming embeds using {0.prefix}automod embedlimit
 """
 
+BAD_INVITE_MESSAGE = ("Your message has been filtered for appearing like bot activity!"
+                      " If you think you're seeing this message in error, please contact the server mods.")
+
 EMOJIS = {
     'tips': [
         '\N{THUMBS UP SIGN}',
@@ -93,7 +97,7 @@ class AutoMod(commands.Cog):
 
         self.config = Config.get_conf(self, identifier=4770700)
         self.config.register_guild(patterns={}, phrases={}, watched_users={}, watchdog_channel_id=None,
-                                   immune_role_ids=[], embed_immune_role_ids=[])
+                                   immune_role_ids=[], embed_immune_role_ids=[], blockinvites=False)
         self.config.register_channel(whitelist=[], blacklist=[], autoemoji=[], image_only=False,
                                      image_limit=1, reset_message_count=LOGS_PER_CHANNEL_USER, image_reset_minutes=5,
                                      imagelimit_enabled=False, embedlimit_enabled=False, embed_limit=2)
@@ -601,6 +605,50 @@ class AutoMod(commands.Cog):
         for emoji in emoji_list:
             await message.add_reaction(emoji)
 
+    @automod.command()
+    async def blockinvites(self, ctx, enable: bool):
+        await self.config.guild(ctx.guild).blockinvites.set(enable)
+        await send_confirmation_message(ctx, f"Invite blocking has been {'enabled' if enable else 'disabled'}.")
+
+    @commands.Cog.listener('on_message')
+    async def check_invites(self, message: discord.Message):
+        if message.author.id == self.bot.user.id or isinstance(message.channel, discord.abc.PrivateChannel):
+            return
+        if not await self.config.guild(message.guild).blockinvites():
+            return
+        if (codes := re.findall(r'discord\.gg/([\w]+)', message.content)) is None:
+            return
+
+        for code in codes:
+            try:
+                guild = (await self.bot.fetch_invite(f'discord.gg/{code}')).guild
+            except discord.NotFound:
+                continue
+            if guild in self.bot.guilds:
+                continue
+
+            print(guild)
+            print(guild in self.bot.guilds)
+            return await self.delete_invite(message)
+
+    async def delete_invite(self, message: discord.Message):
+        try:
+            await message.delete()
+        except discord.Forbidden:
+            return
+        except discord.NotFound:
+            pass
+
+        try:
+            await message.author.send(BAD_INVITE_MESSAGE)
+        except discord.Forbidden:
+            pass
+
+        await self._watchdog_show(message.guild,
+                                  f"**BlockInvite:\n**"
+                                  f"{message.author} sent an invite in {message.channel.mention}:\n"
+                                  f"{message.content}")
+
     @commands.group()
     @commands.guild_only()
     @checks.mod_or_permissions(manage_guild=True)
@@ -743,7 +791,6 @@ class AutoMod(commands.Cog):
     async def mod_message_watchdog_user(self, message):
         user_id = message.author.id
         server_id = message.guild.id
-        watchdog_channel_id = await self.config.guild(message.guild).watchdog_channel_id()
         user_settings = (await self.config.guild(message.guild).watched_users()).get(str(message.author.id))
 
         if user_settings is None:
@@ -771,11 +818,10 @@ class AutoMod(commands.Cog):
         output_msg = "**Watchdog:** {} spoke in {} ({} monitored because [{}])\n{}".format(
             message.author.mention, message.channel.mention,
             request_user_txt, reason, box(message.clean_content))
-        await self._watchdog_show(watchdog_channel_id, output_msg)
+        await self._watchdog_show(message.guild, output_msg)
 
     async def mod_message_watchdog_phrase(self, message):
         server_id = message.guild.id
-        watchdog_channel_id = await self.config.guild(message.guild).watchdog_channel_id()
 
         for name, phrase_settings in (await self.config.guild(message.guild).phrases()).items():
             cooldown = phrase_settings['cooldown']
@@ -799,14 +845,16 @@ class AutoMod(commands.Cog):
                 output_msg = "**Watchdog:** {} spoke in {} `(rule [{}] matched phrase [{}])`\n{}".format(
                     message.author.mention, message.channel.mention,
                     name, phrase, box(message.clean_content))
-                await self._watchdog_show(watchdog_channel_id, output_msg)
+                await self._watchdog_show(message.guild, output_msg)
                 return
 
-    async def _watchdog_show(self, watchdog_channel_id, output_msg):
+    async def _watchdog_show(self, guild, output_msg):
         try:
-            watchdog_channel = self.bot.get_channel(watchdog_channel_id)
-            await watchdog_channel.send(output_msg)
-        except Exception as ex:
+            watchdog_channel_id = await self.config.guild(guild).watchdog_channel_id()
+            if watchdog_channel_id is None:
+                return
+            await self.bot.get_channel(watchdog_channel_id).send(output_msg)
+        except Exception:
             logger.exception("Failed to watchdog")
 
     async def deleteAndReport(self, delete_msg, outgoing_msg):
@@ -816,7 +864,7 @@ class AutoMod(commands.Cog):
                 await delete_msg.author.send(outgoing_msg)
             except discord.Forbidden:
                 pass
-        except Exception as e:
+        except Exception:
             logger.exception("Failure while deleting message from {}, tried to send : {}".format(
                 delete_msg.author.name, outgoing_msg))
 
