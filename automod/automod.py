@@ -626,9 +626,6 @@ class AutoMod(commands.Cog):
                 continue
             if guild in self.bot.guilds:
                 continue
-
-            print(guild)
-            print(guild in self.bot.guilds)
             return await self.delete_invite(message)
 
     async def delete_invite(self, message: discord.Message):
