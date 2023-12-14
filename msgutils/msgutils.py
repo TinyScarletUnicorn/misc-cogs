@@ -79,6 +79,8 @@ class MsgUtils(commands.Cog):
             except discord.NotFound:
                 await ctx.send("Invalid message id")
                 return
+        elif ctx.message.reference:
+            msg = await ctx.channel.fetch_message(ctx.message.reference.message_id)
         else:
             msg_limit = 2 if channel == ctx.channel else 1
             msg = None
