@@ -271,6 +271,13 @@ class Seniority(commands.Cog):
 
     @grant.command()
     @commands.guild_only()
+    async def listnearbelow(self, ctx):
+        """List users below the warn amount."""
+        lookback_days = self.settings.remove_lookback(ctx.guild.id)
+        await self.do_print_overages(ctx, ctx.guild, lookback_days, 'warn_amount', False)
+
+    @grant.command()
+    @commands.guild_only()
     async def listnear(self, ctx):
         """List users above the warn amount."""
         lookback_days = self.settings.grant_lookback(ctx.guild.id)
