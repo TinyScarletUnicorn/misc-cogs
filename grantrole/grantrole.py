@@ -67,7 +67,7 @@ class GrantRole(commands.Cog):
         """List onjoin roles"""
         o = []
         for role_id in await self.config.guild(ctx.guild).on_join():
-            o.append("#{}".format(ctx.guild.get_role(role_id) or "deleted_role"))
+            o.append("@{}".format(ctx.guild.get_role(role_id) or "deleted_role"))
         await ctx.send(box("\n".join(o)))
 
     @grantrole.group()
