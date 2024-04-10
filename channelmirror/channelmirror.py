@@ -22,6 +22,12 @@ MAX_MIRRORED_MESSAGES = 100
 frMESSAGE_LINK = r'(https://discord\.com/channels/{0.guild.id}/{0.id}/(\d+)/?)'
 MESSAGE_LINK = 'https://discord.com/channels/{0.guild.id}/{0.channel.id}/{0.id}'
 
+LINK_RE = re.compile(r'(?:(?:https?|ftp):)?//(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)'
+                     r'(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])'
+                     r'(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4])|'
+                     r'(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+'
+                     r'[a-z\u00a1-\uffff]{2,}\.?)(?::\d{2,5})?(?:[/?#]\S*)?', re.UNICODE | re.IGNORECASE)
+
 
 class ChannelMirror(commands.Cog):
     """Channel mirroring tools."""
@@ -32,7 +38,7 @@ class ChannelMirror(commands.Cog):
 
         self.config = Config.get_conf(self, identifier=3747737700)
         self.config.register_channel(last_spoke=0, last_spoke_timestamp=0, mirrored_channels=[], mirrored_messages={},
-                                     multiedit=False, mirroredit_target=None, nodeletion=False)
+                                     multiedit=False, mirroredit_target=None, nodeletion=False, nolinks=False)
         self.config.init_custom("message", 1)
         self.config.register_custom("message", attribute=False)
 
@@ -99,6 +105,15 @@ class ChannelMirror(commands.Cog):
         if channel is None:
             channel = ctx.channel
         await self.config.channel(channel).nodeletion.set(enable)
+        await ctx.tick()
+
+    @channelmirror.command()
+    @checks.is_owner()
+    async def nolinks(self, ctx, channel: Optional[discord.TextChannel], enable: bool = True):
+        """Opt in a channel to no-deletion mode."""
+        if channel is None:
+            channel = ctx.channel
+        await self.config.channel(channel).nolinks.set(enable)
         await ctx.tick()
 
     @channelmirror.command(aliases=['mirrorconfig'])
@@ -252,8 +267,12 @@ class ChannelMirror(commands.Cog):
         channel = message.channel
         mirrored_channels = await self.config.channel(channel).mirrored_channels()
         multiedit = await self.config.channel(channel).multiedit()
+        nolinks = await self.config.channel(channel).nolinks()
 
         if not mirrored_channels:
+            return
+        
+        if nolinks and re.search(LINK_RE, message.content):
             return
 
         if multiedit and len(message.content) > 2000:
