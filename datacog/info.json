@@ -1,0 +1,23 @@
+{
+  "author": [
+    "The Tsubaki Bot Team"
+  ],
+  "description": "Get data about bot usage",
+  "end_user_data_statement": "No personal data is stored.",
+  "install_msg": "",
+  "short": "Get bot data",
+  "min_bot_version": "3.4.0",
+  "max_bot_version": "0.0.0",
+  "min_python_version": [
+    3,
+    8,
+    1
+  ],
+  "hidden": false,
+  "disabled": false,
+  "required_cogs": {},
+  "requirements": [],
+  "tags": [
+    "data"
+  ]
+}
