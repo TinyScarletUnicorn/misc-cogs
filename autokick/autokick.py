@@ -58,13 +58,13 @@ class AutoKick(commands.Cog):
     async def ak_channel(self, ctx):
         """Autokick logging channel"""
 
-    @ak_role.command(name="set")
+    @ak_channel.command(name="set")
     async def ak_c_set(self, ctx, channel: discord.TextChannel):
         """Set the autokick log channel"""
         await self.config.guild(ctx.guild).log_channel.set(channel.id)
         await ctx.tick()
 
-    @ak_role.command(name="remove")
+    @ak_channel.command(name="remove")
     async def ak_c_optout(self, ctx):
         """Remove the autokick log channel"""
         await self.config.guild(ctx.guild).log_channel.set(None)
