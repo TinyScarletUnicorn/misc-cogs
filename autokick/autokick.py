@@ -19,7 +19,7 @@ class AutoKick(commands.Cog):
         self.bot = bot
 
         self.config = Config.get_conf(self, identifier=3260)
-        self.config.register_guild(kick_role=None)
+        self.config.register_guild(kick_role=None, log_channel=None)
 
     async def red_get_data_for_user(self, *, user_id):
         """Get a user's personal data."""
@@ -49,9 +49,25 @@ class AutoKick(commands.Cog):
         await ctx.tick()
 
     @ak_role.command(name="optout")
-    async def ak_r_optout(self, ctx, role: discord.Role):
+    async def ak_r_optout(self, ctx):
         """Remove the autokick role"""
         await self.config.guild(ctx.guild).kick_role.set(None)
+        await ctx.tick()
+
+    @autokick.group(name='channel')
+    async def ak_channel(self, ctx):
+        """Autokick logging channel"""
+
+    @ak_role.command(name="set")
+    async def ak_c_set(self, ctx, channel: discord.TextChannel):
+        """Set the autokick log channel"""
+        await self.config.guild(ctx.guild).log_channel.set(channel.id)
+        await ctx.tick()
+
+    @ak_role.command(name="remove")
+    async def ak_c_optout(self, ctx):
+        """Remove the autokick log channel"""
+        await self.config.guild(ctx.guild).log_channel.set(None)
         await ctx.tick()
 
     @commands.Cog.listener('on_member_update')
@@ -67,8 +83,16 @@ class AutoKick(commands.Cog):
                 pass
             try:
                 await member.kick(reason='AutoKick Role')
+                await self.log_kick(member)
             except discord.Forbidden:
                 logger.exception(f"Unable to kick user {member}")
+
+    async def log_kick(self, member: discord.Member):
+        if (ch_id := await self.config.guild(member.guild).log_channel()) is None:
+            return
+        if (ch := member.guild.get_channel(ch_id)) is None:
+            return
+        await ch.send(f"{member.name} was kicked by AutoKick for adding a honeypot role.")
 
     async def kick_users(self):
         for gid in await self.config.all_guilds():
@@ -85,5 +109,6 @@ class AutoKick(commands.Cog):
                     pass
                 try:
                     await baduser.kick(reason='AutoKick Role')
+                    await self.log_kick(baduser)
                 except discord.Forbidden:
                     logger.exception(f"Unable to kick user {baduser}")
