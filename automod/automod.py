@@ -168,8 +168,9 @@ class AutoMod(commands.Cog):
     @checks.mod_or_permissions(manage_guild=True)
     async def automodhelp(self, ctx):
         """Sends you info on how to use automod."""
-        for page in pagify(AUTOMOD_HELP.format(ctx.prefix)):
+        for page in pagify(AUTOMOD_HELP.format(ctx)):
             await ctx.author.send(box(page))
+        await ctx.tick()
 
     @commands.group(aliases=['automod2'])
     @commands.guild_only()
