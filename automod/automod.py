@@ -39,7 +39,7 @@ exclude, then it does not match.
 Here's an example pattern:
 Rule Name                              Include regex        Exclude regex
 -----------------------------------------------------------------------------
-messages must start with a room code   ^\d{4}\s?\d{4}.*     .*test.*
+messages must start with a room code   ^\d{{4}}\s?\d{{4}}.*     .*test.*
 
 This pattern will match values like:
   12345678 foo fiz
@@ -49,7 +49,7 @@ However, if the pattern contains 'test', it won't match:
   12345678 foo fiz test bar baz
 
 To add the pattern, you'd use the following command:
-[p]automod addpattern "messages must start with a room code" "^\d{4}\s?\d{4}.*" ".*test.*"
+[p]automod addpattern "messages must start with a room code" "^\d{{4}}\s?\d{{4}}.*" ".*test.*"
 
 Remember that to bundle multiple words together you need to surround the
 argument with quotes, as above.
