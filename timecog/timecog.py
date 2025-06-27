@@ -243,7 +243,7 @@ class TimeCog(commands.Cog):
             tinstrs, reminder = match.groups()
         start = (datetime.utcnow() + tin2tdelta(tinstart)).timestamp()
         async with self.config.user(ctx.author).reminders() as rms:
-            rms.append((start, reminder, tin2tdelta(tinstrs).seconds, 0))
+            rms.append((start, reminder, tin2tdelta(tinstrs).total_seconds(), 0))
         user_show_tz = await self.config.user(ctx.author).show_tz()
         m = await ctx.send("I will tell you {} and every {} seconds after that."
                            "".format(format_rm_time(
@@ -252,7 +252,7 @@ class TimeCog(commands.Cog):
             reminder,
             (await self.get_timezone(ctx.author))[0],
             user_show_tz),
-            tin2tdelta(tinstrs).seconds))
+            tin2tdelta(tinstrs).total_seconds()))
 
     @remindme.command(aliases=["list"])
     async def get(self, ctx):
@@ -345,7 +345,7 @@ class TimeCog(commands.Cog):
                 "start": start,
                 "time": start,
                 "end": 2e11,
-                "interval": tin2tdelta(tinstrs).seconds,
+                "interval": tin2tdelta(tinstrs).total_seconds(),
                 "enabled": True,
                 "channels": [ctx.channel.id],
                 "message": reminder,
@@ -394,7 +394,7 @@ class TimeCog(commands.Cog):
             if name not in schedules:
                 await ctx.send("There is no schedule with this name.")
                 return
-            schedules[name]['interval'] = interval.seconds
+            schedules[name]['interval'] = interval.total_seconds()
         await ctx.tick()
 
     @schedule.command()
@@ -587,7 +587,7 @@ class TimeCog(commands.Cog):
             req_time = req_time + timedelta(days=1)
         delta = req_time - now
 
-        msg = ("There are " + fmt_hrs_mins(delta.seconds).strip() +
+        msg = ("There are " + fmt_hrs_mins(delta.total_seconds()).strip() +
                " until " + req_time.strftime('%-I:%M%p').lower() + " in " + now.strftime('%Z'))
         await ctx.send(msg)
 
