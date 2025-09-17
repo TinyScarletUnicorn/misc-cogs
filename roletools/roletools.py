@@ -1,7 +1,9 @@
 from io import BytesIO
 
 import discord
-from redbot.core import Config, commands
+from redbot.core import Config, commands, app_commands
+
+from roletools.interaction_views import ZRAssignView
 
 
 class RoleTools(commands.Cog):
@@ -9,8 +11,17 @@ class RoleTools(commands.Cog):
         super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = Config.get_conf(self, identifier=2552)
-        self.config.register_guild(badroles=[], stickyroles=[])
+        self.config.register_guild(badroles=[], stickyroles=[], zombieroles=[])
         self.config.register_member(stickyroles=[])
+
+        self.zombierole_assign_ctx_menu = app_commands.ContextMenu(
+            name='Assign Role',
+            callback=self.zombierole_assign,
+        )
+        self.bot.tree.add_command(self.zombierole_assign_ctx_menu)
+
+    async def cog_unload(self) -> None:
+        self.bot.tree.remove_command(self.zombierole_assign_ctx_menu.name, type=discord.AppCommandType.user)
 
     async def red_get_data_for_user(self, *, user_id):
         """Get a user's personal data."""
@@ -128,3 +139,50 @@ class RoleTools(commands.Cog):
         roles = [r for sr in srs if sr in g_srs and (r := member.guild.get_role(sr))]
         if roles:
             await member.add_roles(*roles, reason='Sticky Roles')
+
+    @commands.group()
+    async def zombierole(self, ctx):
+        """The suite for zombie roles
+
+        A zombie role can be granted by anyone with the role."""
+
+    @zombierole.command(name='add')
+    async def zr_add(self, ctx, role: discord.Role):
+        """Add a zombie role"""
+        if not role.is_assignable():
+            return await ctx.send("This role is not assignable. Please make sure my role is higher on the role heirarchy.")
+
+        async with self.config.guild(ctx.guild).zombieroles() as zrs:
+            if role.id in zrs:
+                return await ctx.send("This role is already a zombie role.")
+            zrs.append(role.id)
+
+        await ctx.tick()
+
+    @zombierole.command(name='remove')
+    async def zr_rm(self, ctx, role: discord.Role):
+        """Remove a zombie role"""
+        async with self.config.guild(ctx.guild).zombieroles() as srs:
+            if role.id not in srs:
+                return await ctx.send("This role is not a zombie role.")
+            srs.remove(role.id)
+
+        await ctx.tick()
+
+    @zombierole.command(name='list')
+    async def zr_list(self, ctx):
+        """List zombie roles"""
+        zrs = await self.config.guild(ctx.guild).zombieroles()
+        await ctx.send("\n".join(f'<@{r.id}>' for r in zrs),
+                       allowed_mentions=discord.AllowedMentions.none)
+
+    @app_commands.guild_only
+    @discord.app_commands.checks.bot_has_permissions(manage_roles=True)
+    async def zombierole_assign(self, interaction: discord.Interaction, member: discord.Member):
+        zrs = await self.config.guild(interaction.guild).zombieroles()
+        member_zrs = sorted(role for role in interaction.user.roles if role.id in zrs)
+        if not member_zrs:
+            await interaction.response.send_message("You don't have any transferable roles to assign.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"Please select a role to grant {member.name}",
+                                                    view=ZRAssignView(member=member, roles=member_zrs), ephemeral=True)
