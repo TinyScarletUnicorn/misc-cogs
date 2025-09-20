@@ -22,12 +22,12 @@ tz_lookup = dict([(pytz.timezone(x).localize(datetime.now()).tzname(), pytz.time
                   for x in pytz.all_timezones])
 
 time_at_regeces = [
-    r'^\s*(?:(?:(?P<year>\d{4})[-/])?(?P<month>\d+)[-/](?P<day>\d+) )?(?:(?P<hour>\d+):?(?P<minute>\d\d)? ?(?P<merid>pm|am)?)? \"?(?P<input>.*)\"?$',
+    r'^\s*(?:(?:(?P<year>\d{4})[-/])?(?P<month>\d+)[-/](?P<day>\d+) )?(?:(?P<hour>\d+):?(?P<minute>\d\d)? ?(?P<merid>pm|am)?)?(?: \"?(?P<input>.*)\"?)?$',
 ]
 
 time_in_regeces = [
-    r'^\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+|now)\b (.+)$',  # One tinstr
-    r'^\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+)\b\s*(?:\||in|start(?:ing)? in)\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+|now)\b (.*)$',
+    r'^\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+|now)\b(?: (.+))?$',  # One tinstr
+    r'^\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+)\b\s*(?:\||in|start(?:ing)? in)\s*((?:-?\d+ ?(?:m|h|d|w|y|s)\w* ?)+|now)\b(?: (.*))?$',
     # Unused
 ]
 
@@ -187,9 +187,13 @@ class TimeCog(commands.Cog):
 
         return rmtime, text
 
-    @commands.group(aliases=['remindmeat', 'remindmein'], invoke_without_command=True)
+    @commands.group(usage="<time> <reminder>", aliases=['remindmeat', 'remindmein'], invoke_without_command=True)
     async def remindme(self, ctx, *, timestr):
         rmtime, text = await self.remindme_parse(ctx, timestr)
+        if text is None:
+            if ctx.message.reference is None:
+                return await ctx.send_help()
+            text = ctx.message.reference.resolved.content
         user_timezone, set_tz = await self.get_timezone(ctx.author)
         user_show_tz = await self.config.user(ctx.author).show_tz()
 
@@ -202,10 +206,14 @@ class TimeCog(commands.Cog):
                 ctx)
         await ctx.send(response)
 
-    @commands.command()
+    @commands.command(usage="<time> <reminder>")
     @checks.mod_or_permissions(manage_messages=True)
     async def remindmehere(self, ctx, *, timestr):
         rmtime, text = await self.remindme_parse(ctx, timestr)
+        if text is None:
+            if ctx.message.reference is None:
+                return await ctx.send_help()
+            text = ctx.message.reference.resolved.content
         user_timezone, set_tz = await self.get_timezone(ctx.author)
         user_show_tz = await self.config.user(ctx.author).show_tz()
 
@@ -223,7 +231,7 @@ class TimeCog(commands.Cog):
     async def now(self, ctx, *, reminder):
         await ctx.author.send(reminder)
 
-    @remindme.command()
+    @remindme.command(usage="<time> <reminder>")
     async def every(self, ctx, *, text):
         """Reminds you to do something at a specified time at a specified interval
 
@@ -234,6 +242,10 @@ class TimeCog(commands.Cog):
         match = re.search(time_in_regeces[1], text, re.IGNORECASE)
         if match:
             tinstrs, tinstart, reminder = match.groups()
+            if reminder is None:
+                if ctx.message.reference is None:
+                    return await ctx.send_help()
+                reminder = ctx.message.reference.resolved.content
         else:
             match = re.search(time_in_regeces[0], text, re.IGNORECASE)
             if not match:
@@ -314,7 +326,7 @@ class TimeCog(commands.Cog):
                                                         " Please alert an administrator.")
         await user_preferences_cog.timezone(ctx, tzstr=tz)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, usage="<time> <reminder>")
     @checks.mod_or_permissions(administrator=True)
     async def schedule(self, ctx, name, *, text):
         """Sets up a schedule to fire at the specified interval
@@ -326,6 +338,10 @@ class TimeCog(commands.Cog):
         if match:
             tinstart = "now"
             tinstrs, reminder = match.groups()
+            if reminder is None:
+                if ctx.message.reference is None:
+                    return await ctx.send_help()
+                reminder = ctx.message.reference.resolved.content
         else:
             match = re.search(time_in_regeces[1], text, re.IGNORECASE)
             if not match:
@@ -335,6 +351,10 @@ class TimeCog(commands.Cog):
                     await ctx.send_help()
                 return
             tinstart, tinstrs, reminder = match.groups()
+            if reminder is None:
+                if ctx.message.reference is None:
+                    return await ctx.send_help()
+                reminder = ctx.message.reference.resolved.content
         start = (datetime.utcnow() + tin2tdelta(tinstart)).timestamp()
 
         async with self.config.guild(ctx.guild).schedules() as schedules:
