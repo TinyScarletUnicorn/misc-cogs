@@ -12,7 +12,8 @@ class AutoKick(commands.Cog):
 
     DM_TEXT = ("Your account has displayed anomolous behavior in our server indicative of"
                " botting, and we're kicking you. If you are human and believe this to be in"
-               " error, please rejoin & contact mods.")
+               " error, please rejoin & contact mods (and be careful while choosing roles in"
+               " onboarding)")
 
     def __init__(self, bot, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -92,7 +93,7 @@ class AutoKick(commands.Cog):
             return
         if (ch := member.guild.get_channel(ch_id)) is None:
             return
-        await ch.send(f"{member.name} was kicked by AutoKick for adding a honeypot role.")
+        await ch.send(f"{member.name} ({member.id}) was kicked by AutoKick for adding a honeypot role.")
 
     async def kick_users(self):
         for gid in await self.config.all_guilds():
