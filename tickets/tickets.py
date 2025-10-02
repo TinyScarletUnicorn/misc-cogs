@@ -122,9 +122,7 @@ class Tickets(commands.Cog):
             return
         quarantine_role = ctx.guild.get_role(await self.config.guild(ctx.guild).quarantine_role_id())
         if quarantine_role is None:
-            await ctx.send("Quarantine role not set.", ephemeral=True)
-            return
-        await member.add_roles(quarantine_role)
+            return await ctx.send("Quarantine role not set.", ephemeral=True)
         if await self.make_ticket(ctx, member, TicketType.QUARANTINE) is not None:
             await confirm_command(ctx)
 
@@ -168,6 +166,9 @@ class Tickets(commands.Cog):
                 "type": ticket_type,
                 "open": True
             }
+        if ticket_type == TicketType.QUARANTINE:
+            quarantine_role = ctx.guild.get_role(await self.config.guild(ctx.guild).quarantine_role_id())
+            await member.add_roles(quarantine_role)
 
     @tickets.command()
     async def close(self, ctx, thread: Optional[discord.Thread], message: Optional[str]):
