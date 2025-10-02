@@ -81,6 +81,7 @@ class Tickets(commands.Cog):
 
     @commands.hybrid_group(name="modtickets")
     @app_commands.checks.has_permissions(moderate_members=True)
+    @app_commands.default_permissions()
     @app_commands.guild_only()
     async def modtickets(self, ctx):
         """The suite for ticket commands"""
