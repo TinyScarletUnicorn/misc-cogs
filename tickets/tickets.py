@@ -147,6 +147,7 @@ class Tickets(commands.Cog):
         if not await self.is_enabled(ctx):
             return None
         base_channel = self.bot.get_channel(await self.config.guild(member.guild).ticket_thread_channel_id())
+        await base_channel.set_permissions(member, view_channel=True)
         thread = await base_channel.create_thread(name=f"{member.name} - {datetime.datetime.now().strftime('%m/%d/%Y')}"
                                                        f" {'Q' if ticket_type == TicketType.QUARANTINE else 'R'}")
         await thread.send(member.mention + "\n" + self.type_to_message(ticket_type))
