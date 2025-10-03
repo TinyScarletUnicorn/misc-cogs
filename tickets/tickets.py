@@ -54,7 +54,7 @@ class Tickets(commands.Cog):
     async def do_loop(self) -> NoReturn:
         await self.bot.wait_until_ready()
         with suppress(asyncio.CancelledError):
-            async for _ in repeating_timer(5): #(10 * 60):
+            async for _ in repeating_timer(10 * 60):
                 try:
                     await self.check_threads()
                 except asyncio.CancelledError:
@@ -70,7 +70,7 @@ class Tickets(commands.Cog):
                 thread = guild.get_thread(int(tid))
                 if thread is not None and td['type'] == TicketType.REPORT and td['open'] == True:
                     time_diff = datetime.datetime.now(datetime.UTC) - thread.last_message.created_at
-                    if time_diff.total_seconds() > 5 * 60:
+                    if time_diff.total_seconds() > 24 * 60 * 60:
                         await self.close_ticket(guild, thread)
 
     @commands.hybrid_group(name="tickets")
