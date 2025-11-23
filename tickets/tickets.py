@@ -202,6 +202,7 @@ class Tickets(commands.Cog):
 
         member = guild.get_member(thread_dict['member'])
         await thread.remove_user(member)
+        await thread.edit(archived=True)
         if not has_any_open_tickets:
             base_channel = self.bot.get_channel(await self.config.guild(member.guild).ticket_thread_channel_id())
             await base_channel.set_permissions(member, view_channel=None)
