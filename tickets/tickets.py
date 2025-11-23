@@ -69,7 +69,14 @@ class Tickets(commands.Cog):
             for tid, td in gd['threads'].items():
                 thread = guild.get_thread(int(tid))
                 if thread is not None and td['type'] == TicketType.REPORT and td['open'] == True:
-                    time_diff = datetime.datetime.now(datetime.UTC) - thread.last_message.created_at
+                    last_message = thread.last_message
+                    if last_message is None:
+                        maybe_last = [m async for m in thread.history(limit=1)]
+                        if not maybe_last:
+                            await self.close_ticket(guild, thread)
+                            continue
+                        last_message = maybe_last[0]
+                    time_diff = datetime.datetime.now(datetime.UTC) - last_message.created_at
                     if time_diff.total_seconds() > 24 * 60 * 60:
                         await self.close_ticket(guild, thread)
 
