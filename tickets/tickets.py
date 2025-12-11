@@ -206,7 +206,8 @@ class Tickets(commands.Cog):
         await thread.edit(archived=True)
         if not has_any_open_tickets:
             base_channel = self.bot.get_channel(await self.config.guild(guild).ticket_thread_channel_id())
-            await base_channel.set_permissions(discord.Object(id=thread_dict['member']), view_channel=None)
+            if member is not None:
+                await base_channel.set_permissions(member, view_channel=None)
 
         # Ticket type handling
         if thread_dict['type'] == TicketType.QUARANTINE:
