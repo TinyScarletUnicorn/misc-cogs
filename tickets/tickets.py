@@ -201,16 +201,17 @@ class Tickets(commands.Cog):
             has_any_open_tickets = any(t['member'] == thread_dict['member'] and t['open'] for t in threads.values())
 
         member = guild.get_member(thread_dict['member'])
-        await thread.remove_user(member)
+        if member is not None:
+            await thread.remove_user(member)
         await thread.edit(archived=True)
         if not has_any_open_tickets:
-            base_channel = self.bot.get_channel(await self.config.guild(member.guild).ticket_thread_channel_id())
-            await base_channel.set_permissions(member, view_channel=None)
+            base_channel = self.bot.get_channel(await self.config.guild(guild).ticket_thread_channel_id())
+            await base_channel.set_permissions(discord.Object(id=thread_dict['member']), view_channel=None)
 
         # Ticket type handling
         if thread_dict['type'] == TicketType.QUARANTINE:
             quarantine_role = guild.get_role(await self.config.guild(guild).quarantine_role_id())
-            if quarantine_role is not None:
+            if quarantine_role is not None and member is not None:
                 await member.remove_roles(quarantine_role)
 
     @modtickets.command()
