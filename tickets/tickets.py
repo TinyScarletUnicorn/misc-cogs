@@ -79,6 +79,7 @@ class Tickets(commands.Cog):
                     time_diff = datetime.datetime.now(datetime.UTC) - last_message.created_at
                     if time_diff.total_seconds() > 24 * 60 * 60:
                         await self.close_ticket(guild, thread)
+                        await thread.edit(archived=True)
 
     @commands.hybrid_group(name="tickets")
     @app_commands.default_permissions()
