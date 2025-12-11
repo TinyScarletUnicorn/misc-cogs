@@ -192,7 +192,8 @@ class Tickets(commands.Cog):
         if message:
             member = ctx.guild.get_member(thread_dict['member'])
             await member.send(message)
-        return await confirm_command(ctx)
+        await confirm_command(ctx)
+        await thread.edit(archived=True)
 
     async def close_ticket(self, guild: discord.Guild, thread: discord.Thread):
         async with self.config.guild(guild).threads() as threads:
@@ -203,7 +204,6 @@ class Tickets(commands.Cog):
         member = guild.get_member(thread_dict['member'])
         if member is not None:
             await thread.remove_user(member)
-        await thread.edit(archived=True)
         if not has_any_open_tickets:
             base_channel = self.bot.get_channel(await self.config.guild(guild).ticket_thread_channel_id())
             if member is not None:
