@@ -26,7 +26,7 @@ class Tickets(commands.Cog):
         super().__init__(*args, **kwargs)
         self.bot: Red = bot
 
-        self.config = Config.get_conf(self, identifier=hash("tsubaki"))
+        self.config = Config.get_conf(self, identifier=3260)
         self.config.register_guild(
             alert_channel_id=None,
             alert_role_id=None,

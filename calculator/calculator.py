@@ -56,7 +56,7 @@ class Calculator(commands.Cog):
         """Delete a user's personal data."""
         await self.config.user_from_id(user_id).clear()
 
-    @commands.group()
+    @commands.command()
     async def helpcalc(self, ctx):
         """Whispers info on how to use the calculator."""
         help_msg = HELP_MSG + '\n' + ACCEPTED_TOKENS
