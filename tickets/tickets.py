@@ -131,16 +131,16 @@ class Tickets(commands.Cog):
         quarantine_role = ctx.guild.get_role(await self.config.guild(ctx.guild).quarantine_role_id())
         if quarantine_role is None:
             return await ctx.send("Quarantine role not set.", ephemeral=True)
-        if await self.make_ticket(ctx, member, TicketType.QUARANTINE) is not None:
-            await confirm_command(ctx)
+        if (thread := await self.make_ticket(ctx, member, TicketType.QUARANTINE)) is not None:
+            await confirm_command(ctx, thread.jump_url)
 
     @modtickets.command()
     async def sidechat(self, ctx, member: discord.Member):
         """[MOD ONLY] Create an open ticket with a member"""
         if not await self.is_enabled(ctx):
             return
-        if await self.make_ticket(ctx, member, TicketType.REGULAR) is not None:
-            await confirm_command(ctx)
+        if (thread := await self.make_ticket(ctx, member, TicketType.REGULAR)) is not None:
+            await confirm_command(ctx, thread.jump_url)
 
     @tickets.command()
     async def report(self, ctx):
@@ -148,8 +148,8 @@ class Tickets(commands.Cog):
         if not await self.is_enabled(ctx):
             return
 
-        if await self.make_ticket(ctx, ctx.author, TicketType.REPORT) is not None:
-            await confirm_command(ctx)
+        if (thread := await self.make_ticket(ctx, ctx.author, TicketType.REPORT)) is not None:
+            await confirm_command(ctx, thread.jump_url)
 
     async def make_ticket(self, ctx, member: discord.Member, ticket_type: str) -> Optional[discord.Thread]:
         if not await self.is_enabled(ctx):
@@ -254,8 +254,8 @@ class Tickets(commands.Cog):
 
 
 # TODO: Move to Tsutils
-async def confirm_command(ctx: commands.Context):
+async def confirm_command(ctx: commands.Context, message: str = None):
     if ctx.interaction is None:
         await ctx.tick()
     else:
-        await ctx.send("Done.", ephemeral=True)
+        await ctx.send(message or "Done.", ephemeral=True)
