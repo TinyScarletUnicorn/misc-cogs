@@ -19,6 +19,32 @@ class TicketType:
     REPORT = 'report'
 
 
+class TicketButton(discord.ui.View):
+    def __init__(self, cog: commands.Cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(label="Open Ticket", style=discord.ButtonStyle.primary, custom_id="tickets:open_report_ticket")
+    async def open_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        class MockCtx:
+            def __init__(self, interaction: discord.Interaction):
+                self.guild = interaction.guild
+                self.author = interaction.user
+                self.interaction = interaction
+            
+            async def send(self, *args, **kwargs):
+                if not self.interaction.response.is_done():
+                    return await self.interaction.response.send_message(*args, **kwargs)
+                else:
+                    return await self.interaction.followup.send(*args, **kwargs)
+
+        ctx = MockCtx(interaction)
+        await interaction.response.defer(ephemeral=True)
+        thread = await self.cog.make_ticket(ctx, interaction.user, TicketType.REPORT)
+        if thread is not None:
+            await ctx.send(f"Ticket opened: {thread.jump_url}", ephemeral=True)
+
+
 class Tickets(commands.Cog):
     """write something here"""
 
@@ -35,6 +61,7 @@ class Tickets(commands.Cog):
             threads={})
 
         self._loop = bot.loop.create_task(self.do_loop())
+        bot.add_view(TicketButton(self))
 
     def cog_unload(self):
         self._loop.cancel()
@@ -121,6 +148,18 @@ class Tickets(commands.Cog):
     async def set_quarantine_role(self, ctx, *, role: discord.Role):
         """Set the role to give on a quarantine"""
         await self.config.guild(ctx.guild).quarantine_role_id.set(role.id)
+        await confirm_command(ctx)
+
+    @ticket_setup.command()
+    async def create_panel(self, ctx, channel: discord.TextChannel):
+        """Create a ticket panel in a given channel"""
+        view = TicketButton(self)
+        embed = discord.Embed(
+            title="Create a Ticket",
+            description="Click the button below to open a ticket and speak with moderation.",
+            color=await ctx.embed_color()
+        )
+        await channel.send(embed=embed, view=view)
         await confirm_command(ctx)
 
     @modtickets.command()
